@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /contact/
+Disallow: /privacy/
+Disallow: /algemene-voorwaarden/
+Sitemap: https://www.dmdjwl.com/sitemap.xml
