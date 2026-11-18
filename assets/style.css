@@ -61,3 +61,13 @@ a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}b
 /* Premium product discovery: interactive catalog and homepage cards */
 .product{position:relative;transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease;overflow:hidden}.product:hover{transform:translateY(-5px);box-shadow:0 18px 40px #163a2b1d;border-color:#c6a66c}.product .product-visual{overflow:hidden}.product .product-visual img{transition:transform .45s cubic-bezier(.2,.8,.2,1)}.product:hover .product-visual img{transform:scale(1.065)}.product .product-body h3{line-height:1.35}.product .product-body .price{min-height:50px}.product .product-body .btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;text-align:center}.product:focus-within{outline:2px solid #c6a66c;outline-offset:2px}
 @media(prefers-reduced-motion:reduce){.product,.product .product-visual img{transition:none}.product:hover,.product:hover .product-visual img{transform:none}}
+
+/* Refined precious-metal chart */
+.gold-chart-panel{position:relative;overflow:hidden;border-radius:20px;padding:clamp(18px,3vw,38px);border:1px solid #dfd8c4;background:linear-gradient(145deg,#fff 0%,#fcfaf5 75%,#f6f1e7 100%);box-shadow:0 18px 48px #183e3010}
+.gold-chart-panel:before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,#896b37,#f4dc99,#b18a46)}
+.gold-chart-panel h2{letter-spacing:-.035em}.gold-chart-ranges{background:#f2f2eb;padding:5px;border-radius:12px;gap:3px}
+.gold-chart-ranges button{border:0;border-radius:9px;background:transparent;font-weight:600;transition:background .2s,color .2s,box-shadow .2s}
+.gold-chart-ranges button:hover{background:#e5e9df}.gold-chart-ranges button[aria-pressed=true]{background:#173f33;color:#fff;box-shadow:0 3px 10px #173f332e}
+.gold-chart-panel svg{width:100%;max-height:none;margin-top:25px;overflow:visible;touch-action:pan-y}
+.gold-chart-panel [data-chart-message]{border-top:1px solid #e7e9e2;padding-top:17px;margin-top:4px;color:#59695d;font-weight:500}
+@media(max-width:700px){.gold-chart-panel{border-radius:13px;padding:16px 12px}.gold-chart-ranges{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}.gold-chart-ranges button{padding:10px 4px;font-size:12px;min-height:42px}.gold-chart-panel svg{min-height:0}}
