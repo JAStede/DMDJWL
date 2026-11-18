@@ -20,8 +20,8 @@
 <div id="gold-live-panel" hidden style="margin:15px 0;padding:17px;background:#eef2eb;border:1px solid #d9e1d5;border-radius:4px">
 <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><span>Goudprijs per gram (EUR)</span><b id="gold-per-gram">—</b></div>
 <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px"><span>Indicatieve goudwaarde 250 gram</span><b id="gold-total">—</b></div>
-<div style="font-size:12px;color:#52645b;margin-top:12px">Koersmoment: <time id="gold-updated">—</time> · Verversing elke 60 seconden</div></div>
-<small>De goudkoers kan per minuut veranderen. Een definitieve prijs wordt pas na persoonlijk contact bevestigd. Na uitgifte is een offerte gedurende 30 minuten te accepteren, tenzij anders vermeld. De getoonde goudwaarde is exclusief DMD JWL-verkooppremie, eventuele verzendkosten en overige kosten. De indicatie is geen bindende offerte.</small></div>
+<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid #d9e1d5"><span>Indicatieve verkoopprijs (+ 2%)</span><b id="gold-selling">—</b></div><div style="font-size:12px;color:#52645b;margin-top:12px">Koersmoment: <time id="gold-updated">—</time> · Verversing elke 60 seconden</div></div>
+<small>De goudkoers kan per minuut veranderen. Een definitieve prijs wordt pas na persoonlijk contact bevestigd. Na uitgifte is een offerte gedurende 30 minuten te accepteren, tenzij anders vermeld. De indicatieve verkoopprijs omvat een DMD JWL-verkooppremie van 2% boven de goudwaarde, exclusief eventuele verzendkosten en overige kosten. De indicatie is geen bindende offerte.</small></div>
 <div class="detail-actions"><a class="btn" href="../../contact/?product=250">Offerte aanvragen →</a><a class="btn outline" href="../../goud-kopen/">Andere gewichten bekijken</a></div>
 <div class="detail-note"><strong>Hoe werkt het?</strong> Vraag een offerte aan. Wij nemen telefonisch contact op om de actuele koers, beschikbaarheid en leveringswijze te bespreken. Na bevestiging ontvangt u de betalingsinformatie. Verzending of afhalen vindt plaats volgens de overeengekomen voorwaarden; eventuele verzendkosten worden vooraf vermeld.</div>
 </div></div>
@@ -33,7 +33,7 @@
 <tr><th>Afmetingen</th><td>63,00 × 30,00 × 5,00 mm</td></tr>
 <tr><th>Verpakking</th><td>Zachte kunststof verpakking</td></tr>
 <tr><th>Certificaat</th><td>Kunststof certificaat volgens de opgegeven productspecificaties; exacte levering wordt bij de offerte bevestigd.</td></tr>
-<tr><th>Prijsstelling</th><td>Actuele goudkoers plus de door DMD JWL vastgestelde premie en eventuele overeengekomen kosten.</td></tr>
+<tr><th>Prijsstelling</th><td>Actuele goudwaarde plus 2% DMD JWL-verkooppremie; eventuele verzendkosten en overige kosten worden afzonderlijk vermeld.</td></tr>
 <tr><th>Beschikbaarheid</th><td>Op aanvraag; voorraad nog niet bevestigd.</td></tr>
 </tbody></table></section>
 <section class="detail-section detail-columns"><div><div class="eyebrow">Over de producent</div><h2>Emeko: Belgische raffinaderij</h2><p>Emeko staat voor Edelmetalen Kortrijk. De raffinaderij is opgericht in 1953 en is gespecialiseerd in de verwerking en raffinage van edelmetalen. De goudstaven zijn vervaardigd uit fijn goud met een opgegeven zuiverheid van 99,99%.</p><p>DMD JWL biedt Emeko-goudstaven aan op aanvraag. Wij zijn niet de producent; beschikbaarheid en productspecificaties worden bij het opstellen van de offerte gecontroleerd.</p></div>
@@ -46,6 +46,7 @@
   const panel=document.getElementById('gold-live-panel');
   const gram=document.getElementById('gold-per-gram');
   const total=document.getElementById('gold-total');
+  const selling=document.getElementById('gold-selling');
   const updated=document.getElementById('gold-updated');
   const euros=new Intl.NumberFormat('nl-NL',{style:'currency',currency:'EUR'});
   async function updateGold(){
@@ -59,6 +60,7 @@
       if(!Number.isFinite(value)||value<=0||data.stale===true||!timestamp||Number.isNaN(timestamp.getTime())||Date.now()-timestamp.getTime()>5*60*1000||timestamp.getTime()-Date.now()>60*1000)throw Error('Koers niet actueel');
       gram.textContent=euros.format(value);
       total.textContent=euros.format(value*250);
+      selling.textContent=euros.format(value*250*1.02);
       updated.dateTime=timestamp.toISOString();
       updated.textContent=new Intl.DateTimeFormat('nl-NL',{dateStyle:'short',timeStyle:'short',timeZone:'Europe/Amsterdam'}).format(timestamp);
       status.textContent='Actuele indicatieve goudwaarde';
