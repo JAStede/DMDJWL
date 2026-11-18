@@ -15,15 +15,20 @@
  }
  async function loadSpot(){try{const d=await fetchJSON(api+'spot?currency=EUR&unit=gram&compact=1');spot=isFresh(d)?d:null}catch(e){spot=null}setPrices()}
  function draw(points){
-  const svg=document.querySelector('[data-gold-chart]'),message=document.querySelector('[data-chart-message]');if(!svg)return;
-  if(points.length<2){svg.innerHTML='';if(message)message.textContent='Voor deze periode zijn momenteel geen koersgegevens beschikbaar.';return}
-  const vals=points.map(p=>p.p),min=Math.min(...vals),max=Math.max(...vals),pad=Math.max((max-min)*.12,1),lo=min-pad,hi=max+pad;
-  const x=i=>40+(i/(points.length-1))*720,y=v=>210-(v-lo)/(hi-lo)*170;
-  const line=points.map((p,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(p.p).toFixed(1)).join(' ');
-  const grid=[0,1,2,3].map(i=>{const v=lo+(hi-lo)*i,yy=y(v);return '<line x1="40" y1="'+yy+'" x2="760" y2="'+yy+'" stroke="#d9e1d8"/><text x="4" y="'+(yy+4)+'" font-size="11" fill="#52645b">'+Math.round(v)+'</text>'}).join('');
-  svg.setAttribute('viewBox','0 0 780 230');svg.setAttribute('role','img');svg.setAttribute('aria-label','Historische goudkoers in Amerikaanse dollars per troy ounce');
-  svg.innerHTML=grid+'<path d="'+line+'" fill="none" stroke="#a88140" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
-  if(message)message.textContent='Historische goudkoers in USD per troy ounce · bron XAUS. De verkoopprijzen hierboven zijn indicatief in EUR.';
+ const svg=document.querySelector('[data-gold-chart]'),message=document.querySelector('[data-chart-message]');if(!svg)return;
+ if(points.length<2){svg.innerHTML='';if(message)message.textContent='Voor deze periode zijn momenteel geen koersgegevens beschikbaar.';return}
+ const vals=points.map(p=>p.p),min=Math.min(...vals),max=Math.max(...vals),pad=Math.max((max-min)*.16,1),lo=min-pad,hi=max+pad;
+ const x=i=>66+(i/(points.length-1))*676,y=v=>224-(v-lo)/(hi-lo)*176;
+ const coords=points.map((p,i)=>[x(i),y(p.p)]),line=coords.map(([xx,yy],i)=>(i?'L':'M')+xx.toFixed(1)+' '+yy.toFixed(1)).join(' ');
+ const area=line+' L742 224 L66 224 Z',last=coords[coords.length-1],first=vals[0],end=vals[vals.length-1],delta=(end-first)/first*100;
+ const grid=[0,1,2,3,4].map(i=>{const v=lo+(hi-lo)*i,yy=y(v);return '<line x1="66" y1="'+yy+'" x2="742" y2="'+yy+'" stroke="#dce5de" stroke-dasharray="3 6"/><text x="56" y="'+(yy+4)+'" text-anchor="end" font-size="12" fill="#75867a">'+Math.round(v).toLocaleString('nl-NL')+'</text>'}).join('');
+ const markers=[0,Math.floor((points.length-1)/2),points.length-1].map(i=>{const t=points[i].t;const date=new Date(t>1e12?t:t*1000);const label=Number.isFinite(date.getTime())?new Intl.DateTimeFormat('nl-NL',{day:'2-digit',month:'short',...(range==='1d'?{hour:'2-digit',minute:'2-digit'}:{})}).format(date):'';return '<text x="'+x(i)+'" y="251" text-anchor="'+(i===0?'start':i===points.length-1?'end':'middle')+'" font-size="12" fill="#75867a">'+label+'</text>'}).join('');
+ svg.setAttribute('viewBox','0 0 780 270');svg.setAttribute('role','img');svg.setAttribute('aria-label','Historische goudkoers in Amerikaanse dollars per troy ounce');
+ svg.innerHTML='<defs><linearGradient id="goldArea" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c8a05b" stop-opacity=".34"/><stop offset="1" stop-color="#c8a05b" stop-opacity="0"/></linearGradient><linearGradient id="goldLine" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#d6b46b"/><stop offset="1" stop-color="#97702c"/></linearGradient></defs>'+grid+'<path d="'+area+'" fill="url(#goldArea)"/><path d="'+line+'" fill="none" stroke="url(#goldLine)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="'+last[0]+'" cy="'+last[1]+'" r="9" fill="#c6a061" opacity=".2"/><circle cx="'+last[0]+'" cy="'+last[1]+'" r="4.5" fill="#a27b37" stroke="white" stroke-width="2"/>'+markers+'<line data-chart-crosshair x1="0" y1="30" x2="0" y2="224" stroke="#947a4d" stroke-dasharray="4 5" visibility="hidden"/><circle data-chart-point r="6" fill="#b78a42" stroke="white" stroke-width="3" visibility="hidden"/><rect data-chart-tip-bg rx="7" width="125" height="32" fill="#153d32" visibility="hidden"/><text data-chart-tip-text font-size="13" font-weight="600" fill="#fff" visibility="hidden"></text><rect x="66" y="30" width="676" height="194" fill="transparent" data-chart-hit/>';
+ const hit=svg.querySelector('[data-chart-hit]'),cross=svg.querySelector('[data-chart-crosshair]'),dot=svg.querySelector('[data-chart-point]'),bg=svg.querySelector('[data-chart-tip-bg]'),tip=svg.querySelector('[data-chart-tip-text]');
+ hit.addEventListener('pointermove',e=>{const rect=svg.getBoundingClientRect(),xx=(e.clientX-rect.left)*780/rect.width,i=Math.max(0,Math.min(points.length-1,Math.round((xx-66)/676*(points.length-1)))),px=x(i),py=y(vals[i]);cross.setAttribute('x1',px);cross.setAttribute('x2',px);dot.setAttribute('cx',px);dot.setAttribute('cy',py);bg.setAttribute('x',Math.max(66,Math.min(617,px-62)));bg.setAttribute('y',Math.max(5,py-46));tip.setAttribute('x',Math.max(76,Math.min(627,px-52)));tip.setAttribute('y',Math.max(26,py-25));tip.textContent=new Intl.NumberFormat('nl-NL',{style:'currency',currency:'USD'}).format(vals[i]);[cross,dot,bg,tip].forEach(el=>el.setAttribute('visibility','visible'))});
+ hit.addEventListener('pointerleave',()=>[cross,dot,bg,tip].forEach(el=>el.setAttribute('visibility','hidden')));
+ if(message)message.textContent='Koersverandering in deze periode: '+(delta>=0?'+':'')+delta.toFixed(2).replace('.',',')+'% · USD per troy ounce · bron XAUS. Verkoopprijzen zijn indicatief in EUR.';
  }
  async function loadChart(selected){
   const message=document.querySelector('[data-chart-message]');if(message)message.textContent='Grafiek laden…';
