@@ -207,3 +207,6 @@ section:not(.catalog) .products .product:hover .product-visual img{transform:sca
 
 /* Clear precious-metals VAT disclosures */
 .tax-notice{margin:22px auto 30px;padding:19px 23px;border:1px solid #d4ded7;border-left:4px solid #ae8a4c;border-radius:10px;background:#f7f8f4;color:#173e33}.tax-notice strong{display:block;font-size:16px;margin-bottom:7px}.tax-notice p{margin:0;line-height:1.65;font-size:13px}.gold-tax-label,.silver-tax-label{padding:11px 14px;border-radius:8px;background:#eef4ef;color:#164b35;font-weight:700;font-size:13px;line-height:1.55}.silver-tax-label{background:#f4f4f0;color:#485d54}
+
+/* Contact request privacy acknowledgement */
+.contactform .privacy-consent{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.55}.contactform .privacy-consent input[type=checkbox]{width:18px;height:18px;flex:none;margin-top:2px;accent-color:#173e33}.contactform .privacy-consent a{text-decoration:underline;color:#173e33}
