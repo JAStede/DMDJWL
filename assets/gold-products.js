@@ -33,7 +33,18 @@
  if(message)message.textContent='Koersverandering in deze periode: '+(delta>=0?'+':'')+delta.toFixed(2).replace('.',',')+'% · EUR per gram · bron XAUS. Historische omrekening op basis van EUR/USD.';
  }
  async function loadChart(selected){
- const message=document.querySelector('[data-chart-message]');if(message)message.textContent='Grafiek laden…';
- document.querySelectorAll('[data-chart-range]').forEach(b=>b.addEventListener('click',()=>{range=b.dataset.chartRange;loadChart(range)}));
- loadSpot();setInterval(loadSpot,60000);if(document.querySelector('[data-gold-chart]'))loadChart(range);
+  const message=document.querySelector('[data-chart-message]');if(message)message.textContent='Grafiek laden…';
+  try{
+   const url=selected==='1d'?api+'intraday?symbol=xau&hours=24':api+'chart?symbol=xau&range='+encodeURIComponent(selected==='5d'?'5d':selected==='1m'?'1mo':'1y')+'&interval=1d';
+   const d=await fetchJSON(url);
+   const fx=spot?.fx_rate;
+   if(!Number.isFinite(Number(fx))||Number(fx)<=0||spot?.fx_stale===true)throw Error('Wisselkoers niet beschikbaar');
+   const points=(d.points||[]).map(p=>({t:selected==='1d'?Number(p.t):Date.parse(p.d||p.date||p.t),p:Number(selected==='1d'?p.p:p.c)*Number(fx)/31.1034768})).filter(p=>Number.isFinite(p.t)&&Number.isFinite(p.p)&&p.p>0).sort((a,b)=>a.t-b.t);
+   if(points.length<2)throw Error('Geen koerspunten');
+   draw(points);
+  }catch(e){const svg=document.querySelector('[data-gold-chart]');if(svg)svg.innerHTML='';if(message)message.textContent='Historische koers tijdelijk niet beschikbaar.'}
+ }
+ document.querySelectorAll('[data-chart-range]').forEach(b=>b.addEventListener('click',()=>{range=b.dataset.chartRange;document.querySelectorAll('[data-chart-range]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));loadChart(range)}));
+ loadSpot().then(()=>{if(document.querySelector('[data-gold-chart]'))loadChart(range)});
+ setInterval(loadSpot,60000);
 })();
