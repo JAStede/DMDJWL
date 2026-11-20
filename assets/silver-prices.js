@@ -1,1 +1,43 @@
-(function(){const blocks=[...document.querySelectorAll('[data-silver-weight]')];if(!blocks.length)return;const eur=new Intl.NumberFormat('nl-NL',{style:'currency',currency:'EUR'});const endpoint='https://xaus.com/api/v1/';let gram=null;const set=()=>{for(const b of blocks){const w=Number(b.dataset.silverWeight),premium=Number(b.dataset.silverPremium),bond=b.dataset.silverBond==='true',base=b.querySelector('[data-silver-base]'),price=b.querySelector('[data-silver-price]'),vat=b.querySelector('[data-silver-vat]'),total=b.querySelector('[data-silver-total]'),status=b.querySelector('[data-silver-status]');if(!gram){price.textContent='Prijs op aanvraag';status.textContent='Actuele zilverkoers niet beschikbaar';continue}const raw=gram*w,ex=raw*(1+premium/100);base.textContent=eur.format(raw);price.textContent=eur.format(ex)+(bond?' · vóór eventuele btw':' excl. btw');status.textContent='Indicatief · koers per gram '+eur.format(gram);if(!bond){vat.textContent=eur.format(ex*.21);total.textContent=eur.format(ex*1.21)}}};async function refresh(){try{const res=await fetch(endpoint+'spot?currency=EUR&unit=gram&compact=1',{cache:'no-store'});if(!res.ok)throw Error('not available');const d=await res.json(),fx=Number(d.fx_rate),silver=Number(d.silver_usd_oz),stamp=Date.parse(d.updated_at);if(!Number.isFinite(silver)||silver<=0||!Number.isFinite(fx)||fx<=0||d.fx_stale===true||!Number.isFinite(stamp)||Math.abs(Date.now()-stamp)>300000||String(d.silver_source||'').includes('last known good'))throw Error('invalid');gram=silver*fx/31.1034768}catch(e){gram=null}set()}async function chart(){const svg=document.querySelector('[data-silver-chart]'),status=document.querySelector('[data-silver-chart-status]');if(!svg)return;try{const r=await fetch(endpoint+'intraday?symbol=xag&hours=24',{cache:'no-store'});if(!r.ok)throw Error('missing');const d=await r.json();const points=(d.points||[]).map(p=>({t:Number(p.t),v:Number(p.p)})).filter(p=>Number.isFinite(p.t)&&Number.isFinite(p.v)&&p.v>0);if(points.length<3)throw Error('no series');const spot=await fetch(endpoint+'spot?currency=EUR&unit=gram&compact=1',{cache:'no-store'}).then(r=>r.json());const rate=Number(spot.fx_rate);if(!Number.isFinite(rate)||rate<=0||spot.fx_stale===true)throw Error('no exchange rate');const values=points.map(p=>p.v*rate/31.1034768),min=Math.min(...values),max=Math.max(...values),pad=Math.max((max-min)*.15,.01),lo=min-pad,hi=max+pad,x=i=>65+i/(values.length-1)*650,y=v=>207-(v-lo)/(hi-lo)*170;const line=values.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' ');svg.innerHTML='<defs><linearGradient id="silverFill" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#849e9c" stop-opacity=".4"/><stop offset="1" stop-color="#849e9c" stop-opacity="0"/></linearGradient></defs>'+[0,1,2,3,4].map(i=>{const v=lo+(hi-lo)*i;return '<line x1="65" y1="'+y(v)+'" x2="715" y2="'+y(v)+'" stroke="#dbe1de" stroke-dasharray="4 6"/><text x="56" y="'+(y(v)+4)+'" text-anchor="end" font-size="12" fill="#496058">'+eur.format(v)+'</text>'}).join('')+'<path d="'+line+' L715 207 L65 207 Z" fill="url(#silverFill)"/><path d="'+line+'" stroke="#587e79" stroke-width="3" fill="none"/><circle cx="'+x(values.length-1)+'" cy="'+y(values.at(-1))+'" r="5" fill="#587e79"/>';status.textContent='Historische USD-zilverkoers indicatief omgerekend naar EUR per gram met de huidige wisselkoers; niet de historische EUR-koers.'}catch(e){svg.innerHTML='';status.textContent='Historische zilverkoers momenteel niet beschikbaar. Geen geschatte gegevens getoond.'}}refresh();setInterval(refresh,60000);chart()})();
+(()=>{'use strict';
+const blocks=[...document.querySelectorAll('[data-silver-weight]')];if(!blocks.length)return;
+const euro=new Intl.NumberFormat('nl-NL',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2});
+const endpoint='https://xaus.com/api/v1/spot?currency=EUR&unit=gram&compact=1';
+const OZ=31.1034768;
+const setText=(root,selector,text)=>{const el=root.querySelector(selector);if(el)el.textContent=text};
+let inFlight=false;
+async function refresh(){
+ if(inFlight)return;inFlight=true;
+ try{
+  const response=await fetch(endpoint,{cache:'no-store',headers:{'Accept':'application/json'}});
+  if(!response.ok)throw Error('Koersdienst geeft HTTP '+response.status);
+  const data=await response.json();
+  const silver=Number(data.silver_usd_oz),fx=Number(data.fx_rate);
+  const timestamp=Date.parse(data.updated_at);
+  if(!Number.isFinite(silver)||silver<=0)throw Error('Geen zilverkoers ontvangen');
+  if(!Number.isFinite(fx)||fx<=0||data.fx_stale===true)throw Error('Actuele EUR-wisselkoers ontbreekt');
+  if(!Number.isFinite(timestamp)||Math.abs(Date.now()-timestamp)>5*60*1000)throw Error('Koersgegevens zijn verouderd');
+  if(String(data.silver_source||'').toLowerCase().includes('last known good'))throw Error('Zilverkoers is verouderd');
+  const gram=silver*fx/OZ;
+  if(!Number.isFinite(gram)||gram<=0)throw Error('Omrekening mislukt');
+  const updated=new Intl.DateTimeFormat('nl-NL',{dateStyle:'short',timeStyle:'short',timeZone:'Europe/Amsterdam'}).format(new Date(timestamp));
+  blocks.forEach(b=>{
+   const weight=Number(b.dataset.silverWeight),premium=Number(b.dataset.silverPremium),bond=b.dataset.silverBond==='true';
+   const base=gram*weight,ex=base*(1+premium/100);
+   setText(b,'[data-silver-price]',euro.format(ex)+(bond?' · vóór eventuele btw':' excl. btw'));
+   setText(b,'[data-silver-base]',euro.format(base));
+   setText(b,'[data-silver-status]','Spot '+euro.format(gram)+' / gram · bijgewerkt '+updated);
+   if(!bond){setText(b,'[data-silver-vat]',euro.format(ex*.21));setText(b,'[data-silver-total]',euro.format(ex*1.21))}
+  });
+ }catch(error){
+  blocks.forEach(b=>{
+   setText(b,'[data-silver-price]','Prijs op aanvraag');
+   setText(b,'[data-silver-base]','—');
+   setText(b,'[data-silver-vat]','—');
+   setText(b,'[data-silver-total]','—');
+   setText(b,'[data-silver-status]','Live zilverkoers tijdelijk niet beschikbaar ('+error.message+').');
+  });
+ }finally{inFlight=false}
+}
+document.querySelectorAll('[data-silver-chart]').forEach(svg=>{svg.innerHTML='';const message=svg.parentElement?.querySelector('[data-silver-chart-status]');if(message)message.textContent='XAUS levert momenteel geen historische zilverreeks. De actuele zilverprijs hierboven wordt iedere minuut bijgewerkt wanneer de bron beschikbaar is.'});
+refresh();setInterval(refresh,60000);
+})();
