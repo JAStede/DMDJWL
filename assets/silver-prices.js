@@ -44,16 +44,16 @@ function render(points){
  const status=document.querySelector('[data-silver-chart-status]');
  if(points.length<2){chart.innerHTML='';if(status)status.textContent='Geen historische gegevens voor deze periode.';return}
  const values=points.map(p=>p.value),low=Math.min(...values),high=Math.max(...values),pad=Math.max((high-low)*.15,.015),min=low-pad,max=high+pad;
- const x=i=>80+640*i/(points.length-1),y=v=>215-165*(v-min)/(max-min);
+ const x=i=>88+620*i/(points.length-1),y=v=>222-135*(v-min)/(max-min);
  const line=points.map((p,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(p.value).toFixed(1)).join(' ');
- chart.setAttribute('viewBox','0 0 780 275');
- const grid=[0,1,2,3,4].map(i=>{const v=min+(max-min)*i,yy=y(v);return '<line x1="80" x2="720" y1="'+yy+'" y2="'+yy+'" stroke="#d7dfdd" stroke-dasharray="4 6"/><text x="70" y="'+(yy+4)+'" text-anchor="end" font-size="12" fill="#52665f">'+fmtGram.format(v)+'</text>'}).join('');
- chart.innerHTML=grid+'<path d="'+line+' L720 215 L80 215 Z" fill="#90aaa3" opacity=".12"/><path d="'+line+'" fill="none" stroke="#547b70" stroke-width="3"/><line data-cross x1="0" x2="0" y1="45" y2="215" stroke="#547b70" stroke-dasharray="4 4" visibility="hidden"/><circle data-dot r="5" fill="#547b70" stroke="#fff" stroke-width="2" visibility="hidden"/><rect data-tip-bg width="200" height="52" rx="6" fill="#153d32" visibility="hidden"/><text data-tip fill="white" font-size="12" visibility="hidden"/><rect x="80" y="45" width="640" height="170" fill="transparent" data-hit/>';
+ chart.setAttribute('viewBox','0 0 780 300');
+ const grid=[0,1,2,3,4].map(i=>{const v=min+(max-min)*i,yy=y(v);return '<line x1="88" x2="708" y1="'+yy+'" y2="'+yy+'" stroke="#d7dfdd" stroke-dasharray="4 6"/><text x="78" y="'+(yy+4)+'" text-anchor="end" font-size="12" fill="#52665f">'+fmtGram.format(v)+'</text>'}).join('');
+ chart.innerHTML=grid+'<path d="'+line+' L708 222 L88 222 Z" fill="#90aaa3" opacity=".12"/><path d="'+line+'" fill="none" stroke="#547b70" stroke-width="3"/><line data-cross x1="0" x2="0" y1="80" y2="222" stroke="#547b70" stroke-dasharray="4 4" visibility="hidden"/><circle data-dot r="5" fill="#547b70" stroke="#fff" stroke-width="2" visibility="hidden"/><rect data-tip-bg width="200" height="52" rx="6" fill="#153d32" visibility="hidden"/><text data-tip fill="white" font-size="12" visibility="hidden"/><rect x="88" y="80" width="620" height="142" fill="transparent" data-hit/>';
  const cross=chart.querySelector('[data-cross]'),dot=chart.querySelector('[data-dot]'),bg=chart.querySelector('[data-tip-bg]'),tip=chart.querySelector('[data-tip]'),hit=chart.querySelector('[data-hit]');
  const hide=()=>[cross,dot,bg,tip].forEach(n=>n.setAttribute('visibility','hidden'));
  hit.addEventListener('pointermove',e=>{
   const rect=chart.getBoundingClientRect(),xx=(e.clientX-rect.left)*780/rect.width;
-  const i=Math.max(0,Math.min(points.length-1,Math.round((xx-80)/640*(points.length-1)))),px=x(i),py=y(points[i].value),tx=Math.max(80,Math.min(520,px-100)),ty=Math.max(4,py-67);
+  const i=Math.max(0,Math.min(points.length-1,Math.round((xx-88)/620*(points.length-1)))),px=x(i),py=y(points[i].value),tx=Math.max(88,Math.min(508,px-100)),ty=Math.max(4,py-67);
   cross.setAttribute('x1',px);cross.setAttribute('x2',px);dot.setAttribute('cx',px);dot.setAttribute('cy',py);bg.setAttribute('x',tx);bg.setAttribute('y',ty);tip.setAttribute('x',tx+10);tip.setAttribute('y',ty+18);
   tip.textContent='';for(const [j,s] of [timeFmt.format(points[i].time),fmtGram.format(points[i].value)+' / gram'].entries()){const span=document.createElementNS('http://www.w3.org/2000/svg','tspan');span.setAttribute('x',tx+10);if(j)span.setAttribute('dy','19');span.textContent=s;tip.append(span)}
   [cross,dot,bg,tip].forEach(n=>n.setAttribute('visibility','visible'));
@@ -67,11 +67,14 @@ async function loadChart(selected){
  try{
   if(!Number.isFinite(fx)||fx<=0)throw Error('Wisselkoers niet beschikbaar');
   const intraday=selected==='1d',period=selected==='1m'?'1mo':selected;
-  const d=await json('chart?symbol=silver&range='+period+'&interval=1d');
+  let d;
+  if(intraday){try{d=await json('intraday?symbol=silver&hours=24')}catch(_){d=await json('chart?symbol=silver&range=1d&interval=1h')}}
+  else d=await json('chart?symbol=silver&range='+period+'&interval=1d');
   const points=(d.points||[]).map(p=>{
    const t=Number(p.t),date=new Date(Number.isFinite(t)&&t>0?(t>1e12?t:t*1000):(p.d||p.date));
-   return {time:date,value:Number(p.c)*fx/ounce};
+   return {time:date,value:Number(intraday?(p.p??p.c):p.c)*fx/ounce};
   }).filter(p=>Number.isFinite(p.time.getTime())&&Number.isFinite(p.value)&&p.value>0).sort((a,b)=>a.time-b.time);
+  if(intraday){const newest=Math.max(...points.map(p=>p.time.getTime()));const cutoff=Date.now()-24*3600*1000;const recent=points.filter(p=>p.time.getTime()>=cutoff&&p.time.getTime()<=Date.now()+60000);if(recent.length<2)throw Error('XAUS levert momenteel geen bruikbare 24-uurs zilverreeks');points.splice(0,points.length,...recent)}
   if(points.length<2)throw Error('Geen koerspunten ontvangen');
   render(points);
  }catch(e){chart.innerHTML='';if(status)status.textContent='Historische zilverkoers tijdelijk niet beschikbaar ('+e.message+').'}
