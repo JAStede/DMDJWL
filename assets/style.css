@@ -186,3 +186,11 @@ a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}b
 .product-lightbox>img{display:block;max-width:min(95vw,1100px);max-height:calc(100dvh - 150px);width:auto;height:auto;object-fit:contain}
 .product-lightbox>p{color:#fff;font-size:13px;text-align:center}
 .product-lightbox-close{position:absolute;top:16px;right:22px;width:48px;height:48px;border:1px solid #ffffff70;border-radius:50%;background:#ffffff20;color:#fff;font-size:33px;cursor:pointer}
+
+/* Emeko gold catalog: show the entire certicard, never crop behind product details */
+.catalog .product .product-visual{height:315px;aspect-ratio:auto;display:flex;align-items:center;justify-content:center;padding:18px 16px;background:linear-gradient(145deg,#f5f3ed,#e9e8e1);overflow:hidden}
+.catalog .product .product-visual img{display:block;width:auto!important;height:auto!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;filter:drop-shadow(0 9px 12px rgba(45,45,35,.12));transform:none}
+.catalog .product:hover .product-visual img{transform:scale(1.025)}
+.catalog .product .product-body{position:relative;background:#fff}
+@media(max-width:700px){.catalog .product .product-visual{height:235px;padding:12px}}
+@media(max-width:420px){.catalog .product .product-visual{height:210px;padding:10px}}
