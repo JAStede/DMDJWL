@@ -80,3 +80,10 @@ a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}b
 .gold-chart-panel .gold-chart-head p{font-size:14px;line-height:1.7;color:#4b6055}
 .gold-chart-panel [data-chart-message]{font-size:13px;line-height:1.7;color:#40594b}
 @media(max-width:700px){.gold-chart-panel svg[data-gold-chart]{max-height:none;margin:20px 0 12px;aspect-ratio:780/310}.gold-chart-panel .gold-chart-head p{font-size:13px}}
+
+.gold-chart-panel .chart-live-price{display:flex;flex-direction:column;gap:5px;margin:18px 0 10px;padding:16px 20px;border-left:3px solid #b38a45;background:linear-gradient(90deg,#f6f1e5,#fffdf8);border-radius:0 10px 10px 0}
+.gold-chart-panel .chart-live-price span{font-size:10px;letter-spacing:.12em;font-weight:700;color:#81662f}
+.gold-chart-panel .chart-live-price strong{font:600 clamp(25px,3vw,37px)/1.25 Georgia,serif;color:#173e33}
+.gold-chart-panel .chart-live-price small{font-size:12px;color:#566b5e}
+.gold-chart-panel svg[data-gold-chart]{overflow:visible}
+@media(max-width:700px){.gold-chart-panel .chart-live-price{padding:13px 14px}}
