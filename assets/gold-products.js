@@ -12,6 +12,7 @@
    if(w===250){const gram=card.querySelector('#gold-gram'),total=card.querySelector('#gold-total'),selling=card.querySelector('#gold-selling'),updated=card.querySelector('#gold-updated');if(gram)gram.textContent=euro.format(spot.xau.price);if(total)total.textContent=euro.format(value);if(selling)selling.textContent=euro.format(asking);if(updated)updated.textContent=new Intl.DateTimeFormat('nl-NL',{dateStyle:'short',timeStyle:'short',timeZone:'Europe/Amsterdam'}).format(new Date(spot.price_as_of||spot.data_state.as_of));}
    el.textContent=euro.format(asking);if(base)base.textContent='Goudwaarde '+euro.format(value)+' · + '+premium+'% premie';
   });
+  const headline=document.querySelector('[data-chart-current]');if(headline){headline.textContent=spot?euroGram.format(spot.xau.price)+' / gram':'Koers tijdelijk niet beschikbaar';headline.dataset.state=spot?'live':'unavailable'}
   const stamp=document.querySelector('[data-gold-timestamp]');if(stamp)stamp.textContent=spot?'Indicatie · '+new Intl.DateTimeFormat('nl-NL',{dateStyle:'short',timeStyle:'short',timeZone:'Europe/Amsterdam'}).format(new Date(spot.price_as_of||spot.data_state.as_of)):'Geen actuele koers beschikbaar';
  }
  async function loadSpot(){try{const d=await fetchJSON(api+'spot?currency=EUR&unit=gram&compact=1');spot=isFresh(d)?d:null}catch(e){spot=null}setPrices()}
