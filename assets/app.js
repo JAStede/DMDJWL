@@ -31,3 +31,18 @@ document.querySelectorAll('.product').forEach(card=>{
  }
  refresh();setInterval(refresh,60000);
 })();
+
+
+/* Accessible click-to-enlarge product photography */
+(()=>{
+ const images=[...document.querySelectorAll('img.product-zoomable')];
+ if(!images.length)return;
+ const overlay=document.createElement('div');
+ overlay.className='product-lightbox';overlay.hidden=true;
+ overlay.innerHTML='<button type="button" class="product-lightbox-close" aria-label="Sluit afbeelding">×</button><img alt=""><p>Druk op Esc of klik buiten de afbeelding om te sluiten</p>';
+ document.body.appendChild(overlay);
+ const enlarged=overlay.querySelector('img'),close=()=>{overlay.hidden=true;document.body.style.overflow='';enlarged.removeAttribute('src');};
+ images.forEach(img=>{img.tabIndex=0;img.setAttribute('role','button');img.setAttribute('aria-label',(img.alt||'Productfoto')+' vergroten');const open=()=>{enlarged.src=img.currentSrc||img.src;enlarged.alt=img.alt;overlay.hidden=false;document.body.style.overflow='hidden';overlay.querySelector('button').focus()};img.addEventListener('click',open);img.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}})});
+ overlay.addEventListener('click',e=>{if(e.target===overlay||e.target.closest('.product-lightbox-close'))close()});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!overlay.hidden)close()});
+})();
