@@ -87,3 +87,10 @@ a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}b
 .gold-chart-panel .chart-live-price small{font-size:12px;color:#566b5e}
 .gold-chart-panel svg[data-gold-chart]{overflow:visible}
 @media(max-width:700px){.gold-chart-panel .chart-live-price{padding:13px 14px}}
+
+.chart-spot-banner{display:flex;flex-direction:column;align-items:flex-start;gap:5px;margin-top:18px;padding:18px 23px;border-radius:13px;background:linear-gradient(120deg,#133e32,#245545);color:#fff;border:1px solid #b99a61}
+.chart-spot-banner span{font-size:10px;font-weight:800;letter-spacing:.17em;color:#e6cb8f}
+.chart-spot-banner strong{font-size:clamp(26px,3vw,37px);font-weight:700;line-height:1.3;color:#fff7df}
+.chart-spot-banner small{font-size:12px;color:#e4e9dd}
+.gold-chart-panel svg[data-gold-chart]{aspect-ratio:780/285;overflow:visible}
+@media(max-width:700px){.chart-spot-banner{padding:14px 17px}.gold-chart-panel svg[data-gold-chart]{aspect-ratio:780/285}}
