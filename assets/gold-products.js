@@ -82,7 +82,7 @@ async function loadChart(range){
   draw(points);
  }catch(e){const svg=document.querySelector('[data-gold-chart]');if(svg)svg.innerHTML='';set(message,'Historische koers momenteel niet beschikbaar ('+e.message+').')}
 }
-document.querySelectorAll('[data-chart-range]').forEach(button=>button.addEventListener('click',()=>{currentRange=button.dataset.chartRange;loadChart(currentRange)}));
+document.querySelectorAll('[data-chart-range]').forEach(button=>button.addEventListener('click',()=>{currentRange=button.dataset.chartRange;document.querySelectorAll('[data-chart-range]').forEach(other=>other.setAttribute('aria-pressed',String(other===button)));loadChart(currentRange)}));
 loadSpot().then(()=>loadChart(currentRange));
 setInterval(loadSpot,60000);
 })();
