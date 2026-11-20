@@ -17,11 +17,11 @@ function update(error){
   const base=spot?spot.gram*weight:0,ex=base*(1+premium/100);
   put(card,'[data-silver-price]',spot?fmt.format(ex)+(bond?' · vóór eventuele btw':' excl. btw'):'Prijs op aanvraag');
   put(card,'[data-silver-base]',spot?fmt.format(base):'—');
-  put(card,'[data-silver-status]',spot?'Spot '+fmtGram.format(spot.gram)+' / gram · '+timeFmt.format(spot.time):'Actuele zilverkoers niet beschikbaar'+(error?' ('+error+')':''));
+  put(card,'[data-silver-status]',spot?'Spot '+fmtGram.format(spot.gram)+' / gram · '+timeFmt.format(spot.time)+(spot.old?' · laatst bekende koers (niet actueel)':''):'Actuele zilverkoers niet beschikbaar'+(error?' ('+error+')':''));
   if(!bond){put(card,'[data-silver-vat]',spot?fmt.format(ex*.21):'—');put(card,'[data-silver-total]',spot?fmt.format(ex*1.21):'—')}
  });
  document.querySelectorAll('[data-silver-current]').forEach(el=>el.textContent=spot?fmtGram.format(spot.gram)+' / gram':'Koers niet beschikbaar');
- document.querySelectorAll('[data-silver-updated]').forEach(el=>el.textContent=spot?'Bijgewerkt '+timeFmt.format(spot.time):'Geen actuele koers beschikbaar'+(error?' ('+error+')':''));
+ document.querySelectorAll('[data-silver-updated]').forEach(el=>el.textContent=spot?'Bijgewerkt '+timeFmt.format(spot.time)+(spot.old?' · niet actueel':''):'Geen actuele koers beschikbaar'+(error?' ('+error+')':''));
  document.querySelectorAll('[data-silver-list-price]').forEach(el=>{
   const weight=Number(el.dataset.silverListPrice),premium=Number(el.dataset.silverListPremium),bond=el.dataset.silverListBond==='true';
   const price=spot?spot.gram*weight*(1+premium/100):0;
@@ -34,9 +34,9 @@ async function refresh(){
   if(d.fx_stale===true)throw Error('Wisselkoers niet actueel');
   const rate=Number(d.fx_rate),silver=Number(d.silver_usd_oz),date=new Date(d.updated_at);
   if(!Number.isFinite(rate)||rate<=0||!Number.isFinite(silver)||silver<=0)throw Error('Koersgegevens ontbreken');
-  if(!Number.isFinite(date.getTime())||Math.abs(Date.now()-date.getTime())>300000)throw Error('Koers is verouderd');
-  if(String(d.silver_source||'').toLowerCase().includes('last known good'))throw Error('Zilverkoers is verouderd');
-  fx=rate;spot={gram:silver*rate/ounce,time:date};update();
+  if(!Number.isFinite(date.getTime()))throw Error('Geen geldig tijdstip ontvangen');
+  const old=Math.abs(Date.now()-date.getTime())>300000||String(d.silver_source||'').toLowerCase().includes('last known good');
+  fx=rate;spot={gram:silver*rate/ounce,time:date,old};update();
  }catch(e){spot=null;update(e.message)}
 }
 function render(points){
@@ -67,7 +67,7 @@ async function loadChart(selected){
  try{
   if(!Number.isFinite(fx)||fx<=0)throw Error('Wisselkoers niet beschikbaar');
   const intraday=selected==='1d',period=selected==='1m'?'1mo':selected;
-  const d=await json(intraday?'chart?symbol=silver&range=1d&interval=5m':'chart?symbol=silver&range='+period+'&interval=1d');
+  const d=await json('chart?symbol=silver&range='+period+'&interval=1d');
   const points=(d.points||[]).map(p=>{
    const t=Number(p.t),date=new Date(Number.isFinite(t)&&t>0?(t>1e12?t:t*1000):(p.d||p.date));
    return {time:date,value:Number(p.c)*fx/ounce};
