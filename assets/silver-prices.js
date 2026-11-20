@@ -15,7 +15,7 @@ function update(error){
  cards.forEach(card=>{
   const weight=Number(card.dataset.silverWeight),premium=Number(card.dataset.silverPremium),bond=card.dataset.silverBond==='true';
   const base=spot?spot.gram*weight:0,ex=base*(1+premium/100);
-  put(card,'[data-silver-price]',spot?fmt.format(ex)+(bond?' · vóór eventuele btw':' excl. btw'):'Prijs op aanvraag');
+  put(card,'[data-silver-price]',spot?fmt.format(bond?ex:ex*1.21)+(bond?' · vóór eventuele btw':' incl. 21% btw'):'Prijs op aanvraag');
   put(card,'[data-silver-base]',spot?fmt.format(base):'—');
   put(card,'[data-silver-status]',spot?'Spot '+fmtGram.format(spot.gram)+' / gram · '+timeFmt.format(spot.time)+(spot.old?' · laatst bekende koers (niet actueel)':''):'Actuele zilverkoers niet beschikbaar'+(error?' ('+error+')':''));
   if(!bond){put(card,'[data-silver-vat]',spot?fmt.format(ex*.21):'—');put(card,'[data-silver-total]',spot?fmt.format(ex*1.21):'—')}
@@ -25,7 +25,7 @@ function update(error){
  document.querySelectorAll('[data-silver-list-price]').forEach(el=>{
   const weight=Number(el.dataset.silverListPrice),premium=Number(el.dataset.silverListPremium),bond=el.dataset.silverListBond==='true';
   const price=spot?spot.gram*weight*(1+premium/100):0;
-  el.textContent=spot?fmt.format(price)+(bond?' · vóór eventuele btw':' excl. btw'):'Prijs op aanvraag';
+  el.textContent=spot?fmt.format(bond?price:price*1.21)+(bond?' · vóór eventuele btw':' incl. 21% btw'):'Prijs op aanvraag';
  });
 }
 async function refresh(){
