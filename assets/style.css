@@ -229,3 +229,19 @@ section:not(.catalog) .products .product:hover .product-visual img{transform:sca
 @media(max-width:360px){.metals-actions .metal-action{grid-template-columns:36px minmax(0,1fr) 36px;gap:9px;padding:13px 10px}.metals-actions .metal-action-icon,.metals-actions .metal-action-arrow{width:36px;height:36px;min-width:36px}.metals-actions .metal-action strong{font-size:15px}}
 @media(hover:none){.metals-actions .metal-action:hover{transform:none}.metals-actions .metal-action:hover .metal-action-arrow{transform:none}}
 @media(prefers-reduced-motion:reduce){.metals-actions .metal-action,.metals-actions .metal-action-arrow{transition:none}}
+
+/* Shared mobile usability safeguards */
+html{overflow-x:clip}
+img,svg,video{max-width:100%}
+button,a,input,select,textarea{touch-action:manipulation}
+@media(max-width:700px){
+ .container,.content,.pagehero,.gold-detail,.silver-main{min-width:0}
+ .gold-detail-grid>*,.detail-grid>*,.silver-options>*,.products>*{min-width:0}
+ .gold-chart-panel,.silver-panel,.detail-price,.silver-quote{max-width:100%;min-width:0}
+ .gold-chart-panel svg,.silver-panel svg{display:block;max-width:100%}
+ .gold-chart-ranges button,.silver-range button{min-height:44px}
+ .contactform input:not([type=checkbox]),.contactform select,.contactform textarea{max-width:100%;width:100%;box-sizing:border-box;font-size:16px}
+ .menu{min-width:44px;min-height:44px;cursor:pointer}
+ .mobile-nav a{display:flex;align-items:center;min-height:46px}
+}
+@media(max-width:420px){.gold-chart-ranges,.silver-range{gap:5px}.gold-chart-ranges button,.silver-range button{font-size:11px;padding:9px 3px}}
