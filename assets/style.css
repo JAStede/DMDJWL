@@ -178,3 +178,11 @@ a{color:inherit;text-decoration:none}button,input,textarea,select{font:inherit}b
 .silver-main .silver-options a:hover .silver-product-photo{transform:translateY(-3px)!important}
 .silver-visual img.silver-product-photo{width:auto!important;max-width:82%!important;height:auto!important;max-height:270px!important;object-fit:contain!important;filter:drop-shadow(0 9px 12px rgba(32,54,58,.1))}
 .gold-product img[src$=".webp"],.gold-product img[src*=".webp?"],.product-visual img[src*=".webp"],.goldbar img[src*=".webp"]{object-fit:contain;image-rendering:auto}
+
+.product-zoomable{cursor:zoom-in}
+.product-zoomable:focus-visible{outline:3px solid #bb9856;outline-offset:5px;border-radius:8px}
+.product-lightbox[hidden]{display:none!important}
+.product-lightbox{position:fixed;z-index:99999;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:65px 20px 25px;background:rgba(10,25,22,.93)}
+.product-lightbox>img{display:block;max-width:min(95vw,1100px);max-height:calc(100dvh - 150px);width:auto;height:auto;object-fit:contain}
+.product-lightbox>p{color:#fff;font-size:13px;text-align:center}
+.product-lightbox-close{position:absolute;top:16px;right:22px;width:48px;height:48px;border:1px solid #ffffff70;border-radius:50%;background:#ffffff20;color:#fff;font-size:33px;cursor:pointer}
