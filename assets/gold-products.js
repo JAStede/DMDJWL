@@ -3,7 +3,7 @@
  const euro=new Intl.NumberFormat('nl-NL',{style:'currency',currency:'EUR'}),euroGram=new Intl.NumberFormat('nl-NL',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2});
  const api='https://xaus.com/api/v1/';
  let spot=null,series=[],range='1d';
- const isFresh=d=>d&&d.data_state?.status==='fresh'&&d.stale!==true&&d.fx_stale!==true&&d.xau?.currency==='EUR'&&d.xau?.unit==='gram'&&Number(d.xau.price)>0&&Number.isFinite(Date.parse(d.price_as_of||d.data_state.as_of))&&Math.abs(Date.now()-Date.parse(d.price_as_of||d.data_state.as_of))<300000;
+ const isFresh=d=>d&&d.data_state?.status==='fresh'&&d.stale!==true&&d.fx_stale!==true&&Number.isFinite(Date.parse(d.updated_at))&&Math.abs(Date.now()-Date.parse(d.updated_at))<300000&&Number.isFinite(Date.parse(d.price_as_of||d.data_state?.as_of||d.updated_at))&&Math.abs(Date.now()-Date.parse(d.price_as_of||d.data_state?.as_of||d.updated_at))<300000&&Number(d.fx_rate)>0&&Number(d.spot_usd_oz)>0;
  async function fetchJSON(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw Error('Koersdienst niet beschikbaar');return r.json()}
  function setPrices(){
   cards.forEach(card=>{const w=Number(card.dataset.goldWeight),premium=Number(card.dataset.goldPremium||1.2),el=card.querySelector('[data-live-price]'),base=card.querySelector('[data-spot-value]');if(!el)return;
@@ -15,7 +15,7 @@
   const headline=document.querySelector('[data-chart-current]');if(headline){headline.textContent=spot?euroGram.format(spot.xau.price)+' / gram':'Koers tijdelijk niet beschikbaar';headline.dataset.state=spot?'live':'unavailable'}
   const stamp=document.querySelector('[data-gold-timestamp]');if(stamp)stamp.textContent=spot?'Indicatie · '+new Intl.DateTimeFormat('nl-NL',{dateStyle:'short',timeStyle:'short',timeZone:'Europe/Amsterdam'}).format(new Date(spot.price_as_of||spot.data_state.as_of)):'Geen actuele koers beschikbaar';
  }
- async function loadSpot(){try{const d=await fetchJSON(api+'spot?currency=EUR&unit=gram&compact=1');spot=isFresh(d)?d:null}catch(e){spot=null}setPrices()}
+ async function loadSpot(){try{const d=await fetchJSON(api+'spot?currency=EUR&unit=gram&compact=1');spot=isFresh(d)?{...d,xau:{price:Number(d.spot_usd_oz)*Number(d.fx_rate)/31.1034768},price_as_of:d.price_as_of||d.data_state?.as_of||d.updated_at}:null}catch(e){spot=null}setPrices()}
  function draw(points){
  const svg=document.querySelector('[data-gold-chart]'),message=document.querySelector('[data-chart-message]');if(!svg)return;
  if(points.length<2){svg.innerHTML='';if(message)message.textContent='Voor deze periode zijn momenteel geen koersgegevens beschikbaar.';return}
@@ -39,7 +39,7 @@
    const d=await fetchJSON(url);
    const fx=spot?.fx_rate;
    if(!Number.isFinite(Number(fx))||Number(fx)<=0||spot?.fx_stale===true)throw Error('Wisselkoers niet beschikbaar');
-   const points=(d.points||[]).map(p=>({t:selected==='1d'?Number(p.t):Date.parse(p.d||p.date||p.t),p:Number(selected==='1d'?p.p:p.c)*Number(fx)/31.1034768})).filter(p=>Number.isFinite(p.t)&&Number.isFinite(p.p)&&p.p>0).sort((a,b)=>a.t-b.t);
+   const points=(d.points||[]).map(p=>({t:selected==='1d'?Number(p.t):(Number.isFinite(Number(p.t))?(Number(p.t)>1e12?Number(p.t):Number(p.t)*1000):Date.parse(p.d||p.date)),p:Number(selected==='1d'?p.p:p.c)*Number(fx)/31.1034768})).filter(p=>Number.isFinite(p.t)&&Number.isFinite(p.p)&&p.p>0).sort((a,b)=>a.t-b.t);
    if(points.length<2)throw Error('Geen koerspunten');
    draw(points);
   }catch(e){const svg=document.querySelector('[data-gold-chart]');if(svg)svg.innerHTML='';if(message)message.textContent='Historische koers tijdelijk niet beschikbaar.'}
